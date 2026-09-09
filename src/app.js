@@ -8,11 +8,35 @@ app.use(express.json())
 app.use(cors({
     origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "multipart/form-data"],
     credentials: true
 }))
 
-import uploadRoutes from './controllers/uploadController.js'
+import path from 'path'
+import uploadRoutes from './routes/uploadRoutes.js'
+
+app.use('/processed', express.static(path.resolve(process.cwd(), 'processed')))
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')))
+
+app.get('/api/download', (req, res) => {
+    const filePathParam = req.query.path
+    if (!filePathParam) {
+        return res.status(400).json({ error: 'File path parameter is required' })
+    }
+
+    const processedRoot = path.resolve(process.cwd(), 'processed')
+    const safePath = path.resolve(processedRoot, filePathParam.replace(/^(\.\.[\/\\])+/, ''))
+
+    if (!safePath.startsWith(processedRoot)) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    res.download(safePath, (err) => {
+        if (err && !res.headersSent) {
+            res.status(404).json({ error: 'File not found' })
+        }
+    })
+})
 
 app.use('/api', uploadRoutes)
 
@@ -40,12 +64,12 @@ app.get("/events/:jobId", async (req, res) => {
 subscriber.psubscribe('job:*');
 
 // send map data from the client map to react frontend through pub/sub
-subscriber.on("message", (channel, message) => {
+subscriber.on("pmessage", (pattern, channel, message) => {
 
     console.log("Redis message:", message);
 
-    // channel = job:123
-    const jobId = channel.split(":")[1];
+    // channel = job:upload-123 -> extract the jobId
+    const jobId = channel.replace(/^job:/, '');
 
     // Find the SSE connection for the respective jobId
     const client = clients.get(jobId);
@@ -56,10 +80,7 @@ subscriber.on("message", (channel, message) => {
     }
 
     // Send Redis message to browser
-    client.write(
-        `event:stage_completed\n
-        data: ${message}\n\n`
-    );
+    client.write(`event: stage_completed\ndata: ${message}\n\n`);
 
 });
 

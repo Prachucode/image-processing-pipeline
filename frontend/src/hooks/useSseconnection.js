@@ -6,14 +6,14 @@ export const useSSE = (jobId, handlers) => {
         if (!jobId) return;
 
         const eventSource = new EventSource(
-            `http://localhost:5000/events/${jobId}`
+            `http://localhost:3000/events/${jobId}`
         ); // initiate the sse connection
 
         eventSource.addEventListener("stage_completed", async (event) => {
             const data = JSON.parse(event.data);
 
             await handlers.onStageCompleted?.(data);
-
+            console.log(data)
         });
 
         eventSource.onerror = () => {

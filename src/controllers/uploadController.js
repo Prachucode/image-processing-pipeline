@@ -1,6 +1,6 @@
 import asynchandler from "../middlewares/asyncHandler.js"
 
-import { resizeQueue } from "../queues/resizeQueue.js";
+import { denoiseQueue } from "../queues/denoiseQueue.js";
 
 const uploadimg = asynchandler(async (req, res, next) => {
     const { outputFormat } = req.body;
@@ -10,7 +10,7 @@ const uploadimg = asynchandler(async (req, res, next) => {
         throw error
     }
 
-    const job = await resizeQueue.add('resize', {
+    const job = await denoiseQueue.add('denoise', {
         originalPath: req.file.path, // actual upload path from /uploads directory
         filename: req.file.filename, // the file name converted by server to another name
         outputFormat: outputFormat
@@ -21,6 +21,7 @@ const uploadimg = asynchandler(async (req, res, next) => {
     res.status(202).json({
         success: true,
         message: 'File uploaded',
+        jobId: job.id,
         file: req.file.filename,
         Format: outputFormat
     })

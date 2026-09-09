@@ -3,14 +3,18 @@ import connection from "../config/bullmq.js";
 import { convertImage } from "../services/convertService.js";
 import { publisher } from "../config/redis.js";
 
-const convertworker = new Worker('convert', async (job) => {
-    const { compressedPath, outputFormat } = job.data
-    const convertimgpath = await convertImage(compressedPath)
-    await publisher.publish(`job:${job.id}`, JSON.stringify({
-        jobId: job.id,
+export const convertWorker = new Worker('convert', async (job) => {
+    const inputPath = job.data.resizedPath || job.data.compressedPath
+    const { outputFormat } = job.data
+    const pipelineJobId = job.data.pipelineJobId || job.id
+    const { outputPath, imageUrl, downloadUrl } = await convertImage(inputPath, outputFormat)
+
+    await publisher.publish(`job:${pipelineJobId}`, JSON.stringify({
+        jobId: pipelineJobId,
         stage: 'convert',
         status: 'completed',
-        imageUrl: convertimgpath
+        imageUrl: imageUrl,
+        downloadUrl: downloadUrl
     }))
 }, {
     connection,

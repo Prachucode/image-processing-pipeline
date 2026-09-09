@@ -8,7 +8,7 @@ import path from "path";
 // sharp is specially used for image processing
 
 export const resizeImage = async(inputPath) => {
-    const resizedDir = "processed/resized"
+    const resizedDir = path.resolve(process.cwd(), "processed", "resized");
 
     await fs.mkdir(resizedDir, { recursive: true });
 
@@ -23,6 +23,10 @@ export const resizeImage = async(inputPath) => {
         })
         .toFile(outputPath); // final path of the file
 
-    return outputPath;
+    const relativePath = `resized/${fileName}`;
+    const imageUrl = `http://localhost:3000/processed/${relativePath}`;
+    const downloadUrl = `http://localhost:3000/api/download?path=${encodeURIComponent(relativePath)}`;
+
+    return { outputPath, imageUrl, downloadUrl, fileName };
 }
 
