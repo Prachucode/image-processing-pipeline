@@ -18,14 +18,15 @@ const workers = [
 ]
 // event listener for each worker for checking job logs
 workers.forEach(({ name, worker }) => {
+    // job success handling
     worker.on('active', (job) => {
         console.log(`[Worker:${name}] Job ${job.id} started processing`)
     })
-
     worker.on('completed', (job) => {
         console.log(`[Worker:${name}] Job ${job.id} completed successfully`)
     })
 
+    // job error handling
     worker.on('failed', (job, err) => {
         console.error(`[Worker:${name}] Job ${job?.id} failed with error:`, err?.message || err)
     })
