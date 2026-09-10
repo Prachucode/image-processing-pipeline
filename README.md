@@ -1,6 +1,6 @@
-# ??? Image Processing Pipeline
+# Image Editing Application
 
-A full-stack, asynchronous image processing pipeline built with **Node.js**, **BullMQ**, **Redis**, and **React**. Upload an image and run it through a series of processing stages � resize, compress, denoise, and convert � with real-time progress updates streamed directly to the browser via **Server-Sent Events (SSE)**.
+A full-stack, asynchronous image editing application built with **Node.js**, **BullMQ**, **Redis**, and **React**. Upload an image and run it through a series of processing stages � resize, compress, denoise, and convert � with real-time progress updates streamed directly to the browser via **Server-Sent Events (SSE)**.
 
 ---
 
